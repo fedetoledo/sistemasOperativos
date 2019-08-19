@@ -3,6 +3,7 @@
 
 #define SIZE 5
 
+void preguntarPorTest();
 void ingresarDatos();
 void calcularNA();
 void mostrarDatos();
@@ -36,8 +37,7 @@ bool safe = false;
 
 int main(int argc, char const *argv[]) {
 
-
-	ingresarDatos();
+	preguntarPorTest();
 	calcularNA();
 	mostrarDatos();
 
@@ -107,9 +107,9 @@ void calcularNA() {
 }
 
 void ingresarDatos() {
+	
 	printf("\nIngrese numero de recursos: ");
 	scanf("%d", &r);
-
 	printf("\nIngrese numero de procesos: ");
 	scanf("%d", &p);
 	for (i=0; i < p; i++) {
@@ -180,4 +180,33 @@ void mostrarDatos() {
 	printf("\n");
 }
 
+void preguntarPorTest() {
+	char choice;
+	printf("Correr prueba? (Ejemplo Stallings)[s/n]: ");
+	scanf(" %c", &choice);
 
+	if(choice == 's' || choice == 'S') {
+		printf("\nIngrese numero de recursos: ");
+		scanf("%d", &r);
+
+		printf("\nIngrese numero de procesos: ");
+		scanf("%d", &p);
+		for (i=0; i < p; i++) {
+			corriendo[i] = 1;
+			count++;
+		}
+		
+		for(j=0; j<r; j++)
+			recursos[j] = pruebaRecursos[j];
+		
+		for(i=0; i<p; i++)
+			for(j=0; j<r; j++) {
+				asignacion[i][j] = pruebaAsignacion[i][j];
+				necesidad[i][j] = pruebaNecesidad[i][j];
+				asignados[j] += asignacion[i][j];
+				disponible[j] = recursos[j] - asignados[j];
+			}
+	} else {
+		ingresarDatos();
+	}
+}
