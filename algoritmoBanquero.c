@@ -1,29 +1,35 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define SIZE 5
+
 void ingresarDatos();
 void calcularNA();
 void mostrarDatos();
 void liberarRecursos(int);
 void limpiarProceso(int);
 
-int asignacion[4][3] = {
+int pruebaAsignacion[SIZE][SIZE] = {
 	{1,0,0},
 	{6,1,2},
 	{2,1,1},
 	{0,0,2}
 };
-int necesidad[4][3] = {
+int pruebaNecesidad[SIZE][SIZE] = {
 	{3,2,2},
 	{6,1,3},
 	{3,1,4},
 	{4,2,2}
 };
-int na[4][3];
-int asignados[5];
-int disponible[3] = {0,0,0};
-int recursos[3] = {9,3,6};
-int corriendo[5];
+int pruebaRecursos[SIZE] = {9,3,6};
+
+int asignacion[SIZE][SIZE];
+int necesidad[SIZE][SIZE];
+int na[SIZE][SIZE];
+int asignados[SIZE];
+int disponible[SIZE];
+int recursos[SIZE];
+int corriendo[SIZE];
 int i, j, exec, r, p;
 int count = 0;
 bool safe = false;
@@ -111,22 +117,22 @@ void ingresarDatos() {
 		count++;
 	}
 
-	// printf("\nIngrese vector de recursos maximos: ");
-	// for (i=0; i < r; i++)
-	// 	scanf("%d", &recursos[i]);
+	printf("\nIngrese vector de recursos maximos: ");
+	for (i=0; i < r; i++)
+		scanf("%d", &recursos[i]);
 
-	// printf("\nIngrese matriz de asignacion: ");
-	// for (i=0; i < p; i++) {
-	// 	for (j=0; j < r; j++)
-	// 		scanf("%d", &asignacion[i][j]);
-	// }
+	printf("\nIngrese matriz de asignacion: ");
+	for (i=0; i < p; i++) {
+		for (j=0; j < r; j++)
+			scanf("%d", &asignacion[i][j]);
+	}
 
-	// printf("\nIngrese matriz de necesidad: ");
-	// for (i=0; i < p; i++ ) {
-	// 	for (j=0; j < r; j++)
-	// 		scanf("%d", &necesidad[i][j]);
-	// 	printf("\n");
-	// }
+	printf("\nIngrese matriz de necesidad: ");
+	for (i=0; i < p; i++ ) {
+		for (j=0; j < r; j++)
+			scanf("%d", &necesidad[i][j]);
+		printf("\n");
+	}
 
 	//calculo disponible
 	for(i=0; i < p ; i++)
