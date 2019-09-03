@@ -1,0 +1,34 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <semaphore.h>
+#include <fcntl.h>
+#include <stdlib.h>
+
+int main(void) {
+	sem_t *semA;
+	sem_t *semB;
+	sem_t *semC;
+	sem_t *semX;
+
+	semA = sem_open("/semA",0);
+	semB = sem_open("/semB",0);
+	semC = sem_open("/semC",0);
+	semX = sem_open("/semX",0);
+
+	//Controla 20 iteraciones
+	int control = 0;
+
+	while(1) {
+		sem_wait(semC);
+		sem_wait(semX);
+			if(control < 20) {
+				printf("Proceso C [SC] - %d\n", control);
+				// sleep(1);
+				control++;
+			} else {
+				exit(0);
+			}
+		sem_post(semA);
+		sem_post(semB);
+	}
+}
