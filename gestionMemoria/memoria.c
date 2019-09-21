@@ -26,6 +26,7 @@ typedef struct {
 
 //Recreacion de administracion de memoria particionada fija con
 //particiones de distinto tamaño
+void ocuparParticion(int,task*);
 void crearMemoria();
 void interfaz();
 void opciones();
@@ -41,14 +42,20 @@ void liberarMemoria(particion);
 void limpiarMemoria();
 void mostrarFragInterna();
 void primerAjuste(task*);
+void peorAjuste(task*);
+void mejorAjuste(task*);
+void politicaElegida(int,task*);
+int elegirPolitica();
 
 //Vector de procesos a cargar en memoria
 task procesos[MAX];
 particion particiones[MAX]; 
+void * politicas[3];
+char* nombrePol = "(Primer Ajuste por defecto)";
 
 int main(void) {
-	printf("\n********Gestion de memoria - Primer Ajuste********\n\n");
-	printf("Para cargar procesos primero crear memoria y particiones\n");
+	printf("\n************** GESTION DE MEMORIA - Federico Toledo *************\n");
+	printf("\nIMPORTANTE: Para cargar procesos primero crear memoria y particiones\n");
 	opciones();
 	int shmid;
 	if( (shmid = shmget(0xa,0,0)) != -1) {
@@ -60,26 +67,31 @@ int main(void) {
 	return 0;
 }
 
+
 void interfaz() {
-	printf("\n\n*****************  MENU  *****************\n");
-	printf("1 - Crear memoria compartida\n");
-	printf("2 - Crear archivo de configuracion\n");
-	printf("3 - Leer archivo de configuracion\n");
-	printf("4 - Cargar proceso en memoria\n");
-	printf("5 - Terminar Proceso\n");
-	printf("6 - Mostrar estructura de datos de administarcion\n");
-	printf("7 - Mostrar fragmentacion interna de particion\n");
-	printf("8 - Mostrar contenido de la memoria compartida\n");
-	printf("9 - Mostrar procesos activos\n");
-	printf("0 - Salir\n");
-	printf("*******************************************\n");
+	printf("\n\n*****************  MENU  *****************\n\n");
+	printf("     P - Elegir politica de asignacion\n");
+	printf("     1 - Crear memoria compartida\n");
+	printf("     2 - Crear archivo de configuracion\n");
+	printf("     3 - Leer archivo de configuracion\n");
+	printf("     4 - Cargar proceso en memoria\n");
+	printf("     5 - Terminar Proceso\n");
+	printf("     6 - Mostrar particiones\n");
+	printf("     7 - Mostrar fragmentacion interna\n");
+	printf("     8 - Mostrar contenido SHM\n");
+	printf("     9 - Mostrar procesos activos\n");
+	printf("     0 - Salir\n");
+	printf("\n*******************************************\n");
 	printf("==> ");
 }
 
 void opciones() {
 	int sigue = 1;
+	int politica = 0;
 	int i;
 	do {
+		printf("\n************** GESTION DE MEMORIA - Federico Toledo *************\n");
+		printf("\nPolitica de asignacion: %s\n", nombrePol);
 		interfaz();
 		char opcion;
 		scanf(" %c", &opcion);
@@ -87,51 +99,98 @@ void opciones() {
 		system("clear");
 		switch(opcion) {
 			case '1':
+				printf("\nCREAR MEMORIA COMPARTIDA\n");
 				crearMemoria();
 				break;
 			case '2':
+				printf("\nCREAR ARCHIVO DE CONFIGURACION\n");
 				crearConfigFile();
 				break;
 			case '3':
+				printf("\nLEER ARCHIVO DE CONFIGURACION\n");
 				leerConfigFile();
 				break;
 			case '4':
+				printf("\nCARGAR PROCESO\n");
 				cargarProceso();
 				break;
 			case '5':
+				printf("\nTERMINAR PROCESO\n\n");
 				terminarProceso();
 				break;
 			case '6':
+				printf("\nMOSTRAR ESTRUCTURA DE DATOS DE ADMINISTRACION\n");
 				mostrarDatosAdmin();
 				break;
 			case '7':
+				printf("\nMOSTRAR FRAGMENTACION INTERNA\n");
 				mostrarFragInterna();
 				break;
 			case '8':
+				printf("\nMOSTRAR CONTENIDO DE LA MEMORIA COMPARTIDA\n");
 				mostrarSHM();
 				break;
 			case '9':
+				printf("\nMOSTRAR PROCESOS CARGADOS\n");
 				mostrarProcesos();
+				break;
+			case 'P':
+				politica = elegirPolitica();
 				break;
 			case '0':
 				limpiarMemoria();
 				sigue = 0;
 				break;
-			case 'Q':
-				printf("Salida sin borrar memoria\n");
-				exit(0);
 			default:
 				printf("Elija una opcion correcta\n\n");
 		}
+		//busca procesos sin memoria y les asigna si es posible
 		for(i=0; i < MAX; i++)
 			if(procesos[i].size && !procesos[i].enMemoria)
-				primerAjuste(&procesos[i]);
+				politicaElegida(politica, &procesos[i]);
+				// peorAjuste(&procesos[i]);
+				// primerAjuste(&procesos[i]);
+				// mejorAjuste(&procesos[i]);
 	} while(sigue);
+}
+
+int elegirPolitica() {
+	int eleccion;
+	printf("ELECCION POLITICA DE ASIGNACION\n");
+	printf("0 - Primer ajuste\n");
+	printf("1 - Mejor ajuste\n");
+	printf("2 - Peor ajuste\n");
+	printf("==> ");
+	scanf(" %d", &eleccion);
+	switch(eleccion) {
+		case 0:
+			nombrePol = "Primer Ajuste";
+			return 0;
+		case 1:
+			nombrePol = "Mejor Ajuste";
+			return 1;
+		case 2:
+			nombrePol = "Peor Ajuste";
+			return 2;
+	}
+}
+
+void politicaElegida(int num, task *proceso) {
+	switch(num) {
+		case 0:
+			primerAjuste(proceso);
+			break;
+		case 1:
+			mejorAjuste(proceso);
+			break;
+		case 2:
+			peorAjuste(proceso);
+			break;
+	}
 }
 
 //1 - CREAR MEMORIA COMPARTIDA POR TECLADO
 void crearMemoria() {
-	printf("\nCREAR MEMORIA COMPARTIDA\n");
 	int shmid;
 	if ((shmid = shmget(0xa,0,0)) != -1) printf("Ya hay una memoria inicializada\n"); 
 	else {
@@ -150,7 +209,6 @@ void crearMemoria() {
 
 //2 - CREAR ARCHIVO DE CONFIGURACION DE PARTICIONES
 void crearConfigFile() {
-	printf("\nCREAR ARCHIVO DE CONFIGURACION\n");
 	//FILE * fopen (const char *filename, const char *opentype);
 	int cantidad, i;
 	int base = 0;
@@ -174,7 +232,6 @@ void crearConfigFile() {
 
 //3 - LEER ARCHIVO DE CONFIGURACION Y ESTABLECER PARTICIONES
 void leerConfigFile() {
-	printf("\nLEER ARCHIVO DE CONFIGURACION\n");
 	FILE *config;
 	config = fopen("config", "r");
 	particion datos;
@@ -193,9 +250,8 @@ void leerConfigFile() {
 	fclose(config);
 }
 
-//4 - CARGAR PROCESO EN MEMORIA SI HAY LUGAR
+//4 - CARGAR PROCESO EN COLA PARA POSTERIOR ASIGNACION A MEMORIA
 void cargarProceso() {
-	printf("\nCARGAR PROCESO\n");
 	if(particiones[0].size) {	
 		task proceso;
 		printf("Ingrese nombre (1 letra mayuscula): ");
@@ -211,7 +267,6 @@ void cargarProceso() {
 				break;
 			}
 		}
-		// primerAjuste(proceso);
 	} else printf("No hay particiones cargadas\n");
 }
 
@@ -220,7 +275,6 @@ void terminarProceso() {
 	int i;
 	int found=0;
 	char nombre;
-	printf("\nTERMINAR PROCESO\n\n");
 	printf("Ingrese nombre del proceso: ");
 	scanf(" %c", &nombre);
 	nombre = toupper(nombre);
@@ -241,19 +295,13 @@ void terminarProceso() {
 
 //6 - MOSTRAR ESTRUCTURAS DE DATOS DE ADMINISTRACION
 void mostrarDatosAdmin() {
-	printf("\nMOSTRAR ESTRUCTURA DE DATOS DE ADMINISTRACION\n");
 	int i;
 	int count=0; //para mostrar si hay o no particiones iniciadas
 	for(i=0; i < MAX; i++) {
 		if(particiones[i].size) {
 			particion p = particiones[i];
 			printf("Particion %d | size: %d | base: %d | ocupada: %d | proceso: %c | sizeProceso %d\n", 
-				p.numero,
-				p.size,
-				p.base,
-				p.ocupada,
-				p.proceso.nombre,
-				p.proceso.size
+				p.numero,p.size,p.base,p.ocupada,p.proceso.nombre,p.proceso.size
 			);
 			count++;
 		}
@@ -263,13 +311,12 @@ void mostrarDatosAdmin() {
 
 //7 - MOSTRAR FRAGMENTACION INTERNA DE PARTICION N
 void mostrarFragInterna() {
-	printf("\nMOSTRAR FRAGMENTACION INTERNA\n");
 	int i;
 	int count=0;
 	for(i=0; i<MAX; i++)
 		if(particiones[i].size && particiones[i].proceso.nombre) {
 			int fragInterna = particiones[i].size - particiones[i].proceso.size;
-			printf("Particion %d: %d\n", i, fragInterna);
+			printf("Particion %d: %d bytes\n", i, fragInterna);
 			count++;
 		}
 	if(!count) printf("No hay fragmentacion interna en niguna particion\n");
@@ -277,7 +324,6 @@ void mostrarFragInterna() {
 
 //8 - MOSTRAR CONTENIDO DE LA MEMORIA COMPARTIDA
 void mostrarSHM() {
-	printf("\nMOSTRAR CONTENIDO DE LA MEMORIA COMPARTIDA\n");
 	int shmid;
 	if( (shmid = shmget(0xa,0,0)) != -1) {
 		printf("shmid = %d\n", shmid);
@@ -290,11 +336,10 @@ void mostrarSHM() {
 //9 - MOSTRAR PROCESOS ACTIVOS
 void mostrarProcesos() {
 	int count=0;
-	printf("\nMOSTRAR PROCESOS CARGADOS\n");
 	for(int i=0;i< MAX;i++) {
 		if(procesos[i].nombre) {
-			printf("Proceso %c # Size: %d # EnMemoria? %d\n",
-				procesos[i].nombre, procesos[i].size,procesos[i].enMemoria);
+			printf("Proceso %c # Size: %d # Asignado: %s\n",
+				procesos[i].nombre, procesos[i].size,procesos[i].enMemoria ? "Si":"No");
 			count++;
 		}
 	}
@@ -313,28 +358,67 @@ void limpiarMemoria() {
 
 //ALGORITMO DE POLITICA DE ASIGNACION DE MEMORIA 
 void primerAjuste(task *proceso) {
-	int count=0;
-	for (int i = 0; i < MAX; ++i) {
+	int i;
+	for (i = 0; i < MAX; ++i) {
 		int enoughSize = particiones[i].size - proceso->size;
 		int puedeCargarse = !particiones[i].ocupada && enoughSize >= 0;
 		if(puedeCargarse) {
-			particiones[i].ocupada = 1;
-			particiones[i].proceso.nombre = proceso->nombre;
-			particiones[i].proceso.size = proceso->size;
-			particiones[i].proceso.enMemoria = 1;
-			proceso->enMemoria = 1;
-			printf("Particion %d ocupada por %c\n",particiones[i].numero, proceso->nombre);
-			int shmid = shmget(0xa,0,0);
-			char *nombreTask = (char*) shmat(shmid,0,0);
-			memset(nombreTask + particiones[i].base , proceso->nombre, proceso->size);
-			shmdt(nombreTask);
-			count=0;
+			ocuparParticion(i, proceso);
 			break;
-		} else { count++; }
+		}
 	}
-	if(count) printf("No hay espacio para el proceso %c\n", proceso->nombre);
 }
 
+
+//ALGORITMO DE POLITICA DE ASIGNACION DE MEMORIA
+void mejorAjuste(task *proceso) {
+	int i,dif,minIndex;
+	int count=0;
+	int min=10000;
+	for(i=0; i < MAX; i++)
+		if(particiones[i].size && !particiones[i].ocupada) {
+			dif = particiones[i].size - proceso->size;
+			if(dif < min && dif >= 0) {
+				min = dif;
+				minIndex = i;
+				count++;
+			}
+		}
+	if(count) {
+		ocuparParticion(minIndex, proceso);
+	}
+}
+
+void peorAjuste(task *proceso) {
+	int i,dif,maxIndex;
+	int count=0;
+	int max=-10000;
+	for(i=0; i < MAX; i++)
+		if(particiones[i].size && !particiones[i].ocupada) {
+			dif = particiones[i].size - proceso->size;
+			if(dif > max && dif >= 0) {
+				max = dif;
+				maxIndex = i;
+				count++;
+			}
+		}
+	if(count) {
+		ocuparParticion(maxIndex, proceso);
+	}
+}
+
+void ocuparParticion(int indice, task *proceso) {
+	particiones[indice].ocupada = 1;
+	particiones[indice].proceso = *proceso;
+	proceso->enMemoria = 1;
+	printf("Particion %d ocupada por %c\n", particiones[indice].numero, proceso->nombre);
+	int shmid;	
+		if( (shmid = shmget(0xa,0,0)) != -1) {
+			char *nombreTask = (char*) shmat(shmid,0,0);
+			memset(nombreTask + particiones[indice].base , proceso->nombre, proceso->size);
+			shmdt(nombreTask);
+		}
+}
 
 particion liberarParticion(char nombreProc) {
 	int j;
