@@ -37,7 +37,7 @@ void cargarProceso();
 void mostrarSHM();
 void mostrarProcesos();
 void terminarProceso();
-particion liberarParticion(char);
+particion * liberarParticion(char);
 void liberarMemoria(particion);
 void limpiarMemoria();
 void mostrarFragInterna();
@@ -169,6 +169,8 @@ int elegirPolitica() {
 		case 2:
 			nombrePol = "Peor Ajuste";
 			return 2;
+		default:
+			return -1;
 	}
 }
 
@@ -276,8 +278,8 @@ void terminarProceso() {
 			procesos[i].nombre = '\0';
 			procesos[i].size = 0;
 			found=1;
-			particion pLiberada = liberarParticion(nombre);
-			liberarMemoria(pLiberada);
+			particion * pLiberada = liberarParticion(nombre);
+			liberarMemoria(*pLiberada);
 			printf("Proceso %c terminado\n", nombre);
 			break;
 		}
@@ -412,7 +414,7 @@ void ocuparParticion(int indice, task *proceso) {
 		}
 }
 
-particion liberarParticion(char nombreProc) {
+particion * liberarParticion(char nombreProc) {
 	int j;
 	for(j=0; j < MAX; j++) {
 		particion *p;
@@ -423,9 +425,10 @@ particion liberarParticion(char nombreProc) {
 			p->proceso.nombre = '\0';
 			p->proceso.size = 0;
 			printf("Particion %d liberada\n",j);
-			return *p;
+			return p;
 		}
 	}
+	return NULL;
 }
 
 void liberarMemoria(particion p) {
