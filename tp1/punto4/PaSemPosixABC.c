@@ -17,7 +17,7 @@ int main(void) {
 	while(1) {
 		sem_wait(semA);
 			printf("Proceso A [SC]\n");
-			// sleep(1);
+			sleep(1);
 		sem_post(semX);
 	}
 }

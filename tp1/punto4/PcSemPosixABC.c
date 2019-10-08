@@ -23,7 +23,7 @@ int main(void) {
 		sem_wait(semX);
 			if(control < 20) {
 				printf("Proceso C [SC] - %d\n", control);
-				// sleep(1);
+				sleep(1);
 				control++;
 			} else {
 				exit(0);

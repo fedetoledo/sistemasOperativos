@@ -18,7 +18,7 @@ int main(void) {
 		sem_wait(semB);
 		sem_wait(semX);
 			printf("Proceso B [SC]\n");
-			// sleep(1);
+			sleep(1);
 		sem_post(semA);
 		sem_post(semC);
 	}
