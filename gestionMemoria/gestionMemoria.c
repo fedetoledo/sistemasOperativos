@@ -170,6 +170,7 @@ int elegirPolitica() {
 			nombrePol = "Peor Ajuste";
 			return 2;
 		default:
+			printf("Elija una opcion valida\n");
 			return -1;
 	}
 }
